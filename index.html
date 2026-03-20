@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <meta name="apple-mobile-web-app-title" content="My Cycle"/>
+  <title>My Cycle</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root { --color: #b05a52; --bg: #fdf0ee; --accent: #e8b4ae; --text: #1e1e1e; }
+    body { font-family: 'Jost', sans-serif; background: var(--bg); min-height: 100vh; transition: background 0.7s ease; padding-bottom: env(safe-area-inset-bottom, 30px); color: var(--text); }
+    .wrap { max-width: 490px; margin: 0 auto; padding: 40px 18px 100px; }
+    .header { text-align: center; margin-bottom: 24px; animation: fadeIn 0.5s ease; }
+    .header-label { font-size: 11px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--color); margin-bottom: 6px; font-weight: 600; }
+    .day-number { font-family: 'Cormorant Garamond', serif; font-size: 66px; font-weight: 400; color: var(--color); line-height: 1; letter-spacing: -0.02em; }
+    .phase-pill { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; background: var(--color); color: white; padding: 5px 18px; border-radius: 100px; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; font-weight: 600; }
+    .progress-wrap { margin-bottom: 26px; }
+    .progress-bar-bg { height: 4px; background: rgba(0,0,0,0.09); border-radius: 100px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; border-radius: 100px; transition: width 0.6s ease; background: linear-gradient(90deg, var(--accent), var(--color)); }
+    .progress-labels { display: flex; justify-content: space-between; margin-top: 6px; font-size: 10px; color: var(--color); opacity: 0.55; letter-spacing: 0.05em; font-weight: 500; }
+    .tabs { display: flex; gap: 4px; background: white; border-radius: 100px; padding: 4px; border: 1px solid rgba(0,0,0,0.07); margin-bottom: 22px; box-shadow: 0 1px 8px rgba(0,0,0,0.04); }
+    .tab-btn { flex: 1; border: none; border-radius: 100px; padding: 9px 0; font-family: 'Jost', sans-serif; font-size: 11px; letter-spacing: 0.07em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; background: transparent; color: var(--color); font-weight: 500; }
+    .tab-btn.active { background: var(--color); color: white; font-weight: 600; }
+    .card { background: white; border-radius: 20px; padding: 22px 24px; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 2px 20px rgba(0,0,0,0.05); margin-bottom: 14px; }
+    .card-label { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--color); margin-bottom: 12px; font-weight: 700; }
+    .affirmation-card { position: relative; }
+    .affirmation-text { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-style: italic; color: #111; line-height: 1.6; font-weight: 400; padding-right: 36px; }
+    .heart-btn { position: absolute; top: 20px; right: 20px; background: none; border: none; font-size: 24px; cursor: pointer; transition: transform 0.2s; line-height: 1; padding: 0; color: var(--color); }
+    .heart-btn:active { transform: scale(1.3); }
+    .task-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+    .task-row:last-of-type { border-bottom: none; }
+    .task-check { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; cursor: pointer; border: 2px solid var(--accent); background: transparent; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+    .task-check.done { background: var(--color); border-color: var(--color); }
+    .task-tick { color: white; font-size: 10px; display: none; font-weight: 700; }
+    .task-check.done .task-tick { display: block; }
+    .task-text { flex: 1; font-size: 14px; color: #111; font-weight: 400; line-height: 1.4; }
+    .task-text.done { color: #bbb; text-decoration: line-through; }
+    .task-remove { background: none; border: none; color: #ccc; font-size: 20px; cursor: pointer; padding: 0 2px; opacity: 0; transition: opacity 0.15s; line-height: 1; }
+    .task-row:hover .task-remove { opacity: 1; }
+    .task-input-row { display: flex; gap: 8px; margin-top: 14px; }
+    .task-input { flex: 1; padding: 10px 14px; border: 2px solid rgba(0,0,0,0.09); border-radius: 12px; font-size: 14px; font-family: 'Jost', sans-serif; background: var(--bg); color: #111; font-weight: 400; }
+    .task-input:focus { outline: none; border-color: var(--color); }
+    .add-btn { background: var(--color); color: white; border: none; border-radius: 12px; padding: 10px 18px; font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; letter-spacing: 0.03em; }
+    .add-btn:active { opacity: 0.85; }
+    .suggestions-wrap { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 4px; }
+    .suggest-chip { font-family: 'Jost', sans-serif; font-size: 12px; padding: 6px 13px; border-radius: 100px; cursor: pointer; transition: all 0.15s; border: 1.5px solid var(--color); background: transparent; color: var(--color); white-space: nowrap; font-weight: 500; }
+    .suggest-chip:active { opacity: 0.75; }
+    .suggest-chip.added { opacity: 0.38; background: rgba(0,0,0,0.03); }
+    .phase-desc { font-size: 13px; color: #333; line-height: 1.65; margin-bottom: 13px; font-weight: 400; }
+    .symptoms-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+    .sym-section-label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color); margin: 14px 0 8px; font-weight: 700; width: 100%; }
+    .sym-btn { display: flex; align-items: center; gap: 6px; padding: 8px 13px; border-radius: 12px; border: 1.5px solid rgba(0,0,0,0.12); background: transparent; color: #444; font-family: 'Jost', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.15s; font-weight: 400; }
+    .sym-btn.active { border-color: var(--color); background: var(--color); color: white; font-weight: 500; }
+    .cycle-controls { background: white; border-radius: 20px; padding: 22px 24px; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 2px 20px rgba(0,0,0,0.05); margin-bottom: 14px; }
+    .helper-text { font-size: 13px; color: #555; margin-bottom: 14px; line-height: 1.55; }
+    .date-picker-row { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+    .date-input { flex: 1; padding: 10px 14px; border: 2px solid rgba(0,0,0,0.09); border-radius: 12px; font-size: 14px; font-family: 'Jost', sans-serif; color: #111; background: var(--bg); }
+    .date-input:focus { outline: none; border-color: var(--color); }
+    .set-btn { background: var(--color); color: white; border: none; border-radius: 12px; padding: 10px 18px; font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+    .set-btn:active { opacity: 0.85; }
+    .current-cycle-info { font-size: 13px; color: var(--color); font-weight: 600; margin-top: 4px; }
+    .past-cycles-list { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+    .past-cycle-item { display: flex; justify-content: space-between; align-items: center; background: var(--bg); border-radius: 12px; padding: 10px 14px; }
+    .past-cycle-date { font-size: 13px; color: #1e1e1e; font-weight: 500; }
+    .past-cycle-len { font-size: 12px; color: var(--color); font-weight: 600; }
+    .del-btn { background: none; border: none; color: #ccc; font-size: 20px; cursor: pointer; padding: 0 2px; line-height: 1; }
+    .del-btn:hover { color: #e08; }
+    .log-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .log-cell { background: var(--bg); border-radius: 14px; padding: 14px 16px; }
+    .log-cell-label { font-size: 10px; color: var(--color); letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 5px; font-weight: 700; }
+    .log-cell-val { font-family: 'Cormorant Garamond', serif; font-size: 19px; color: var(--color); }
+    .log-date { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: #111; margin-bottom: 18px; }
+    .tag { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; padding: 4px 11px; border-radius: 100px; font-weight: 500; }
+    .done-tag { background: #e6f4e8; color: #2d6b40; }
+    .undone-tag { background: #f2f2f2; color: #aaa; text-decoration: line-through; }
+    .sym-tag { background: rgba(0,0,0,0.06); color: #444; }
+    .tags-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+    .hist-card { background: white; border-radius: 16px; padding: 16px 20px; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 1px 10px rgba(0,0,0,0.03); margin-bottom: 10px; }
+    .hist-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .hist-date { font-family: 'Cormorant Garamond', serif; font-size: 18px; color: #111; }
+    .hist-icons { font-size: 14px; letter-spacing: 2px; }
+    .hist-cycle-header { background: var(--color); color: white; border-radius: 12px; padding: 10px 16px; margin: 18px 0 8px; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700; }
+    .empty-msg { text-align: center; font-family: 'Cormorant Garamond', serif; font-size: 20px; font-style: italic; color: #bbb; padding: 40px 20px; }
+    .no-items { font-size: 13px; color: #bbb; font-style: italic; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.45s ease; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+    #toast { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); background: #1e1e1e; color: white; padding: 11px 22px; border-radius: 100px; font-family: 'Jost', sans-serif; font-size: 13px; font-weight: 500; z-index: 999; pointer-events: none; display: none; animation: fadeIn 0.3s ease; white-space: nowrap; }
+  </style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="header-label">your cycle</div>
+    <div class="day-number" id="dayNumber">Day 1</div>
+    <div><span class="phase-pill" id="phasePill">🌑 Menstrual Phase</span></div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="progress-labels"><span>Day 1</span><span>Day 28</span></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('today',this)">Today</button>
+    <button class="tab-btn" onclick="switchTab('log',this)">Log</button>
+    <button class="tab-btn" onclick="switchTab('history',this)">History</button>
+    <button class="tab-btn" onclick="switchTab('cycle',this)">Cycle</button>
+  </div>
+
+  <!-- TODAY -->
+  <div class="tab-content active fade-in" id="tab-today">
+    <div class="card affirmation-card">
+      <div class="card-label">today's affirmation</div>
+      <p class="affirmation-text" id="affirmationText"></p>
+      <button class="heart-btn" id="heartBtn" onclick="toggleIntimate()" title="Log intimacy">♡</button>
+    </div>
+    <div class="card">
+      <div class="card-label">today's focus</div>
+      <div id="taskList"></div>
+      <div class="task-input-row">
+        <input class="task-input" id="taskInput" placeholder="add a task..." onkeydown="if(event.key==='Enter')addTask()"/>
+        <button class="add-btn" onclick="addTask()">Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-label" id="suggestLabel">aligned for this phase</div>
+      <p class="phase-desc" id="phaseDesc"></p>
+      <div class="suggestions-wrap" id="suggestionChips"></div>
+    </div>
+    <div class="card">
+      <div class="card-label">how are you feeling?</div>
+      <div class="symptoms-grid" id="symptomBtns"></div>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="tab-content fade-in" id="tab-log">
+    <div class="card">
+      <div class="card-label">today's summary</div>
+      <div class="log-date" id="logDate"></div>
+      <div class="log-grid">
+        <div class="log-cell"><div class="log-cell-label">Phase</div><div class="log-cell-val" id="logPhase"></div></div>
+        <div class="log-cell"><div class="log-cell-label">Intimacy</div><div class="log-cell-val" id="logIntimate"></div></div>
+      </div>
+      <div style="margin-bottom:14px">
+        <div class="card-label" id="logTaskLabel">tasks</div>
+        <div class="tags-wrap" id="logTasks"></div>
+      </div>
+      <div>
+        <div class="card-label">symptoms</div>
+        <div class="tags-wrap" id="logSymptoms"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="tab-content fade-in" id="tab-history">
+    <div id="historyList"></div>
+  </div>
+
+  <!-- CYCLE MANAGEMENT -->
+  <div class="tab-content fade-in" id="tab-cycle">
+    <div class="cycle-controls">
+      <div class="card-label">current cycle</div>
+      <p class="helper-text">Pick the date your most recent period started to update where you are now.</p>
+      <div class="date-picker-row">
+        <input type="date" class="date-input" id="cycleDateInput"/>
+        <button class="set-btn" onclick="setCurrentCycle()">Set</button>
+      </div>
+      <div class="current-cycle-info" id="currentCycleInfo"></div>
+    </div>
+    <div class="cycle-controls">
+      <div class="card-label">past cycles</div>
+      <p class="helper-text">Add previous cycle start dates to build your history and see cycle length patterns.</p>
+      <div class="date-picker-row">
+        <input type="date" class="date-input" id="pastCycleDateInput"/>
+        <button class="set-btn" onclick="addPastCycle()">Add</button>
+      </div>
+      <div class="past-cycles-list" id="pastCyclesList"></div>
+    </div>
+  </div>
+
+</div>
+<div id="toast"></div>
+
+<script>
+const PHASES = {
+  menstrual:  {days:[1,5],   label:"Menstrual",  moon:"🌑",color:"#b05a52",bg:"#fdf0ee",accent:"#e8b4ae"},
+  follicular: {days:[6,13],  label:"Follicular", moon:"🌒",color:"#5a8a6a",bg:"#f0f5f0",accent:"#a8d4b2"},
+  ovulatory:  {days:[14,17], label:"Ovulatory",  moon:"🌕",color:"#b8832a",bg:"#fdf6ec",accent:"#f0d4a0"},
+  luteal:     {days:[18,28], label:"Luteal",     moon:"🌖",color:"#6a5a9a",bg:"#f3f0f8",accent:"#c4b8e0"},
+};
+
+const PHASE_TASKS = {
+  menstrual:  ["Answer DMs and saved replies","Repurpose content into Stories","Review last month's analytics","Brainstorm ideas — no pressure to execute","Reply to emails at a gentle pace","Update ShopMy links or collections"],
+  follicular: ["Batch-write captions for the week","Draft an email or newsletter","Brainstorm a new content series","Write carousel copy for upcoming posts","Outline a new Reel concept","Reply to brand inquiry emails","Plan your next content batch day"],
+  ovulatory:  ["Film Reels — you're magnetic right now","Record voiceovers and talking-head content","Pitch a brand collab or respond to partnerships","Go live or show up on camera in Stories","Record a tutorial or educational Reel","Create a ShopMy haul or walkthrough video","Film a day-in-the-life or behind-the-scenes"],
+  luteal:     ["Edit and schedule content already filmed","Finalize captions and hashtag strategy","Deep-work on cookbook writing or recipe notes","Organize your content calendar","Build out a new ShopMy collection","Write and refine an offer or sales page","Audit Crunchi client follow-ups"],
+};
+
+const AFFIRMATIONS = {
+  menstrual:[
+    "Rest is not laziness — it is how you refill what you pour into everything else.",
+    "Your body is doing sacred, invisible work. Honor it fully.",
+    "You are allowed to need less today. That is not failing — that is wisdom.",
+    "The most powerful thing you can do right now is slow all the way down.",
+    "This is a season of release. Let what needs to go, go.",
+    "You don't have to earn your rest. It has always belonged to you.",
+    "Something is completing itself in you right now. Trust the process.",
+    "Turning inward is not retreating — it's recalibrating.",
+    "Your worth is not tied to your output. Not today, not ever.",
+    "Even the moon goes completely dark before she glows again.",
+  ],
+  follicular:[
+    "Your energy is waking up. Meet it with curiosity, not pressure.",
+    "New ideas are moving through you. Give them somewhere to land.",
+    "This is your season to begin. Start the thing you've been circling.",
+    "Your mind is sharp and your body is light. Trust both.",
+    "Plant seeds today that you'll harvest at ovulation.",
+    "The spark you feel right now is not random — it's a signal. Follow it.",
+    "Creativity is flowing. Clear the runway and let it move through you.",
+    "You are in your rising. So much is possible from right here.",
+    "This phase was made for bold first moves. Make one.",
+    "Trust the ideas that light you up — they are not accidents.",
+  ],
+  ovulatory:[
+    "You are magnetic right now. Show up like you already know it.",
+    "This is your moment to speak, share, and be fully seen. Take it.",
+    "The world genuinely benefits when you take up space. Don't shrink.",
+    "Your confidence right now is biology — let it carry you forward.",
+    "You were made to bloom. This is that exact season.",
+    "Get on camera. Be seen. Your presence is one of your greatest gifts.",
+    "People are drawn to you right now. Say the thing you've been holding back.",
+    "This is not the time to play small. Expand into every room you enter.",
+    "Your light is turned all the way up. Don't dim it for anyone.",
+    "Lead with your voice — it is one of the most powerful things you own.",
+  ],
+  luteal:[
+    "Your discernment right now is a superpower. Trust every bit of it.",
+    "Not everything deserves a yes. Protecting your energy is an act of self-respect.",
+    "You are completing a cycle. Finish what matters and release the rest.",
+    "Your sensitivity is data, not weakness. Listen to it.",
+    "This phase asks for depth, not breadth. Go slow and go thorough.",
+    "The things bothering you right now are pointing at something real. Pay attention.",
+    "Honor the quieting. Solitude in this phase is deeply productive.",
+    "You don't have to respond to everything. Choose what gets your energy.",
+    "Completion is its own kind of magic. Tie up the threads.",
+    "Rest and output can coexist beautifully. You are allowed both.",
+  ],
+};
+
+const PHASE_DESC = {
+  menstrual:  "Low energy, high intuition — gentle tasks only. Protect your bandwidth.",
+  follicular: "Rising energy and creative spark — write, plan, and ideate freely.",
+  ovulatory:  "Peak energy and charisma — get on camera, pitch, and connect.",
+  luteal:     "Detail-oriented and inward — edit, finalize, and complete.",
+};
+
+const GENERAL_SYMS  = ["Cramps","Bloating","Headache","Cravings","Sleep quality","Skin / breakouts"];
+const OVUL_SYMS     = ["Ovulation pain / mittelschmerz","Cervical mucus changes","Breast tenderness"];
+const LUTEAL_SYMS   = ["PMS mood swings","Anxiety / irritability","Lower back pain","Brain fog"];
+const SYM_ICONS     = {
+  "Cramps":"🩸","Bloating":"💨","Headache":"💫","Cravings":"🍫","Sleep quality":"🌙","Skin / breakouts":"✨",
+  "Ovulation pain / mittelschmerz":"⚡","Cervical mucus changes":"💧","Breast tenderness":"🌸",
+  "PMS mood swings":"🌊","Anxiety / irritability":"🔥","Lower back pain":"💢","Brain fog":"☁️",
+};
+
+function ld(k,fb){try{const v=localStorage.getItem(k);return v!==null?JSON.parse(v):fb;}catch{return fb;}}
+function sv(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+
+let cycleStart = ld("ct2_cycleStart", Date.now());
+let dayData    = ld("ct2_dayData", {});
+let pastCycles = ld("ct2_pastCycles", []);
+
+function todayKey(){return new Date().toISOString().split("T")[0];}
+function dToKey(d){return d.toISOString().split("T")[0];}
+function getDay(){return Math.min(Math.max(Math.floor((Date.now()-cycleStart)/86400000)+1,1),28);}
+function getPhase(day){for(const[k,p]of Object.entries(PHASES)){if(day>=p.days[0]&&day<=p.days[1])return{key:k,...p};}return{key:"luteal",...PHASES.luteal};}
+function getToday(){const dk=todayKey();if(!dayData[dk])dayData[dk]={tasks:[],symptoms:[],intimate:false};return dayData[dk];}
+function saveData(){sv("ct2_dayData",dayData);}
+function e(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function ea(s){return String(s).replace(/\\/g,"\\\\").replace(/'/g,"\\'");}
+
+function applyTheme(p){
+  document.documentElement.style.setProperty("--color",p.color);
+  document.documentElement.style.setProperty("--bg",p.bg);
+  document.documentElement.style.setProperty("--accent",p.accent);
+  document.body.style.background=p.bg;
+}
+
+function render(){
+  const day=getDay(),phase=getPhase(day),today=getToday();
+  applyTheme(phase);
+  document.getElementById("dayNumber").textContent="Day "+day;
+  document.getElementById("phasePill").textContent=phase.moon+" "+phase.label+" Phase";
+  document.getElementById("progressFill").style.width=((day-1)/27*100)+"%";
+  const affs=AFFIRMATIONS[phase.key];
+  document.getElementById("affirmationText").textContent="\u201c"+affs[(day-1)%affs.length]+"\u201d";
+  document.getElementById("heartBtn").textContent=today.intimate?"♥️":"♡";
+  renderTasks(today.tasks);
+  document.getElementById("suggestLabel").textContent=phase.moon+" aligned for this phase";
+  document.getElementById("phaseDesc").textContent=PHASE_DESC[phase.key];
+  renderSuggestions(PHASE_TASKS[phase.key],today.tasks);
+  renderSymptoms(today.symptoms);
+  renderLog(day,phase,today);
+  renderCycleTab();
+}
+
+function renderTasks(tasks){
+  const el=document.getElementById("taskList");
+  if(!tasks.length){el.innerHTML="<p class='no-items' style='margin-bottom:10px'>What are you working on today?</p>";return;}
+  el.innerHTML=tasks.map((t,i)=>`<div class="task-row">
+    <button class="task-check${t.done?" done":""}" onclick="toggleTask(${i})"><span class="task-tick">✓</span></button>
+    <span class="task-text${t.done?" done":""}">${e(t.text)}</span>
+    <button class="task-remove" onclick="removeTask(${i})">×</button>
+  </div>`).join("");
+}
+
+function renderSuggestions(sugs,tasks){
+  document.getElementById("suggestionChips").innerHTML=sugs.map(s=>{
+    const added=tasks.find(t=>t.text===s);
+    return`<button class="suggest-chip${added?" added":""}" onclick="addSug('${ea(s)}')">${added?"✓ ":"+ "}${e(s)}</button>`;
+  }).join("");
+}
+
+function renderSymptoms(active){
+  let h="";
+  h+=`<div class="sym-section-label">general</div>`;
+  h+=GENERAL_SYMS.map(s=>symB(s,active)).join("");
+  h+=`<div class="sym-section-label">ovulation</div>`;
+  h+=OVUL_SYMS.map(s=>symB(s,active)).join("");
+  h+=`<div class="sym-section-label">luteal / pms</div>`;
+  h+=LUTEAL_SYMS.map(s=>symB(s,active)).join("");
+  document.getElementById("symptomBtns").innerHTML=h;
+}
+function symB(s,active){
+  return`<button class="sym-btn${active.includes(s)?" active":""}" onclick="toggleSym('${ea(s)}')">${SYM_ICONS[s]||"•"} ${e(s)}</button>`;
+}
+
+function renderLog(day,phase,today){
+  document.getElementById("logDate").textContent=new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"});
+  document.getElementById("logPhase").textContent=phase.moon+" "+phase.label;
+  document.getElementById("logIntimate").textContent=today.intimate?"♥️":"♡";
+  const tasks=today.tasks||[];
+  document.getElementById("logTaskLabel").textContent=`tasks — ${tasks.filter(t=>t.done).length}/${tasks.length} done`;
+  document.getElementById("logTasks").innerHTML=tasks.length?tasks.map(t=>`<span class="tag ${t.done?"done-tag":"undone-tag"}">${t.done?"✓ ":""}${e(t.text)}</span>`).join(""):"<span class='no-items'>No tasks added</span>";
+  const syms=today.symptoms||[];
+  document.getElementById("logSymptoms").innerHTML=syms.length?syms.map(s=>`<span class="tag sym-tag">${SYM_ICONS[s]||""} ${e(s)}</span>`).join(""):"<span class='no-items'>None logged</span>";
+}
+
+function renderHistory(){
+  const list=document.getElementById("historyList");
+  const allStarts=[cycleStart,...pastCycles].sort((a,b)=>b-a);
+  const entries=Object.entries(dayData).filter(([k])=>k!==todayKey()).sort((a,b)=>b[0].localeCompare(a[0]));
+  if(!entries.length){list.innerHTML="<div class='empty-msg'>Your history will appear here as you log each day.</div>";return;}
+  let html="",lastCycleIdx=-1;
+  entries.forEach(([key,data])=>{
+    const ts=new Date(key+"T12:00:00").getTime();
+    let ci=allStarts.findIndex(s=>ts>=s);
+    if(ci===-1)ci=allStarts.length-1;
+    if(ci!==lastCycleIdx){
+      lastCycleIdx=ci;
+      const sd=new Date(allStarts[ci]);
+      const lbl=ci===0?"Current Cycle — started "+sd.toLocaleDateString("en-US",{month:"long",day:"numeric"}):"Cycle — "+sd.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"});
+      html+=`<div class="hist-cycle-header">${lbl}</div>`;
+    }
+    const d=new Date(key+"T12:00:00");
+    const ds=d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"});
+    const tasks=data.tasks||[],syms=data.symptoms||[];
+    const th=tasks.length?`<div class="tags-wrap" style="margin-top:8px">${tasks.map(t=>`<span class="tag ${t.done?"done-tag":"undone-tag"}">${t.done?"✓ ":""}${e(t.text)}</span>`).join("")}</div>`:"";
+    const sh=syms.length?`<div class="tags-wrap" style="margin-top:6px">${syms.map(s=>`<span class="tag sym-tag">${SYM_ICONS[s]||""} ${e(s)}</span>`).join("")}</div>`:"";
+    const icons=(data.intimate?"♥️ ":"")+syms.slice(0,5).map(s=>SYM_ICONS[s]||"").join(" ");
+    html+=`<div class="hist-card"><div class="hist-header"><span class="hist-date">${ds}</span><span class="hist-icons">${icons}</span></div>${th}${sh}</div>`;
+  });
+  list.innerHTML=html;
+}
+
+function renderCycleTab(){
+  const d=new Date(cycleStart);
+  document.getElementById("currentCycleInfo").textContent=`Day ${getDay()} of current cycle — started ${d.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}`;
+  const inp=document.getElementById("cycleDateInput");
+  if(!inp.value) inp.value=dToKey(d);
+  const sorted=[...pastCycles].sort((a,b)=>b-a);
+  const el=document.getElementById("pastCyclesList");
+  if(!sorted.length){el.innerHTML="<p class='no-items'>No past cycles logged yet.</p>";return;}
+  el.innerHTML=sorted.map((ts,i)=>{
+    const start=new Date(ts);
+    const nextTs=i===0?cycleStart:sorted[i-1];
+    const len=Math.round((nextTs-ts)/86400000);
+    const lenStr=(len>0&&len<60)?len+" days":"";
+    return`<div class="past-cycle-item">
+      <span class="past-cycle-date">${start.toLocaleDateString("en-US",{month:"long",day:"numeric",year:"numeric"})}</span>
+      <span class="past-cycle-len">${lenStr}</span>
+      <button class="del-btn" onclick="deletePast(${ts})">×</button>
+    </div>`;
+  }).join("");
+}
+
+// Actions
+function addTask(){const inp=document.getElementById("taskInput"),t=inp.value.trim();if(!t)return;getToday().tasks.push({text:t,done:false});saveData();inp.value="";render();}
+function toggleTask(i){const t=getToday();t.tasks[i].done=!t.tasks[i].done;saveData();render();}
+function removeTask(i){const t=getToday();t.tasks.splice(i,1);saveData();render();}
+function addSug(text){const t=getToday();if(t.tasks.find(x=>x.text===text))return;t.tasks.push({text,done:false});saveData();render();}
+function toggleSym(s){const t=getToday(),i=t.symptoms.indexOf(s);if(i===-1)t.symptoms.push(s);else t.symptoms.splice(i,1);saveData();render();}
+function toggleIntimate(){const t=getToday();t.intimate=!t.intimate;saveData();render();}
+
+function setCurrentCycle(){
+  const inp=document.getElementById("cycleDateInput");
+  if(!inp.value){toast("Please pick a date ✦");return;}
+  const picked=new Date(inp.value+"T00:00:00");
+  if(picked>new Date()){toast("That date is in the future!");return;}
+  const oldKey=dToKey(new Date(cycleStart));
+  if(oldKey!==inp.value&&!pastCycles.includes(cycleStart)){pastCycles.push(cycleStart);sv("ct2_pastCycles",pastCycles);}
+  cycleStart=picked.getTime();sv("ct2_cycleStart",cycleStart);
+  render();toast("Cycle updated to Day "+getDay()+" 🌸");
+}
+
+function addPastCycle(){
+  const inp=document.getElementById("pastCycleDateInput");
+  if(!inp.value){toast("Please pick a date ✦");return;}
+  const picked=new Date(inp.value+"T00:00:00").getTime();
+  if(picked>=cycleStart){toast("Must be before your current cycle.");return;}
+  if(pastCycles.includes(picked)){toast("Already logged!");return;}
+  pastCycles.push(picked);pastCycles.sort((a,b)=>b-a);sv("ct2_pastCycles",pastCycles);inp.value="";render();toast("Past cycle added ✓");
+}
+
+function deletePast(ts){pastCycles=pastCycles.filter(x=>x!==ts);sv("ct2_pastCycles",pastCycles);render();}
+
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent=msg;t.style.display="block";
+  clearTimeout(t._t);t._t=setTimeout(()=>t.style.display="none",2500);
+}
+
+function switchTab(name,btn){
+  document.querySelectorAll(".tab-content").forEach(el=>el.classList.remove("active"));
+  document.querySelectorAll(".tab-btn").forEach(el=>el.classList.remove("active"));
+  document.getElementById("tab-"+name).classList.add("active");
+  btn.classList.add("active");
+  if(name==="history")renderHistory();
+  if(name==="log"||name==="cycle")render();
+}
+
+render();
+</script>
+</body>
+</html>
